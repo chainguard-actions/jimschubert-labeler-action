@@ -1,1 +1,15 @@
-# jimschubert-labeler-action
+# jimschubert/labeler-action
+
+Automatically label issues and pull requests via configuration
+
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/jimschubert/labeler-action](https://github.com/jimschubert/labeler-action).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v2.1.3 | [`v2.1.3`](https://github.com/chainguard-actions/jimschubert-labeler-action/tree/v2.1.3) | [`79c9c5a`](https://github.com/jimschubert/labeler-action/commit/79c9c5ae24372d5a8e6178f87320a231e601faf4) |
+
+## Privacy
+
+This Action contacts Chainguard's licensing server to verify authorization. Connection metadata (IP address, GitHub repository identifier, timestamp, and any metadata encoded in the auth token) is transmitted to Chainguard, Inc. even if authorization is denied in accordance with our [Privacy Notice](https://www.chainguard.dev/legal/privacy-notice)
