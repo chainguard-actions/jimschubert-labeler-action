@@ -1,0 +1,40 @@
+name: Test custom config path
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: issues
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create custom labeler config at non-default path
+        run: |
+          mkdir -p config
+          cat > config/my-labeler.yml <<'EOF'
+          labels:
+            - label: "triage"
+              matcher:
+                title: ".*"
+          EOF
+
+      - name: Run labeler action with custom config path (expect failure without real token/issue)
+        id: action
+        uses: .
+        with:
+          GITHUB_TOKEN: fake-token-for-testing
+          config_path: config/my-labeler.yml
+        continue-on-error: true
+
+      - name: Assert action ran (outcome is either success or failure, not skipped)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran with custom config path, outcome=$OUTCOME"

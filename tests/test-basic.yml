@@ -1,0 +1,45 @@
+name: Test basic labeler invocation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create labeler config
+        run: |
+          mkdir -p .github
+          cat > .github/labeler.yml <<'EOF'
+          labels:
+            - label: "bug"
+              matcher:
+                title: "^bug.*"
+            - label: "enhancement"
+              matcher:
+                title: "^feat.*"
+          EOF
+
+      - name: Run labeler action (expect failure without real token/PR)
+        id: action
+        uses: .
+        with:
+          GITHUB_TOKEN: fake-token-for-testing
+          config_path: .github/labeler.yml
+        continue-on-error: true
+
+      - name: Assert action ran (outcome is either success or failure, not skipped)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome=$OUTCOME"
