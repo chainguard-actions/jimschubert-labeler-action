@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v1 | [`v1`](https://github.com/chainguard-actions/jimschubert-labeler-action/tree/v1) | [`60dcc94`](https://github.com/jimschubert/labeler-action/commit/60dcc941169e03764e01ad4d1395907643b2bf6f) |
 | v2.1.3 | [`v2.1.3`](https://github.com/chainguard-actions/jimschubert-labeler-action/tree/v2.1.3) | [`79c9c5a`](https://github.com/jimschubert/labeler-action/commit/79c9c5ae24372d5a8e6178f87320a231e601faf4) |
 
 ## Privacy
