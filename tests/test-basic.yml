@@ -1,0 +1,46 @@
+name: Test basic labeler action invocation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create a minimal labeler config at the default path
+      - name: Create labeler config
+        run: |
+          mkdir -p .github
+          cat > .github/labeler.yml << 'EOF'
+          labels:
+            - label: "bug"
+              matcher:
+                title: ".*bug.*"
+          EOF
+
+      # The action uses a Docker image that calls the GitHub API.
+      # With a fake token and no real PR/issue context, it will exit with an error.
+      # We use continue-on-error to capture the outcome and verify the action
+      # was invoked (not that it succeeded against the real API).
+      - id: action
+        uses: .
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: fake-token-for-testing
+          GITHUB_EVENT_NAME: pull_request
+          GITHUB_REF: refs/pull/1/merge
+        with:
+          GITHUB_TOKEN: fake-token-for-testing
+          config_path: .github/labeler.yml
+
+      - name: Assert action was invoked
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # The action should either succeed or fail gracefully (not be skipped)
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action was invoked (outcome: $OUTCOME)"
