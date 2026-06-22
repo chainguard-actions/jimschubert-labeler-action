@@ -1,0 +1,29 @@
+name: Test labeler action on issues event
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: issues
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Invoke labeler action for issues event
+        id: action
+        uses: .
+        with:
+          GITHUB_TOKEN: fake-token-for-testing
+        continue-on-error: true
+
+      - name: Assert action ran (not skipped)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action should attempt to run and either succeed or fail at the API level.
+          # It must not be skipped.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked for issues event (outcome: ${{ steps.action.outcome }})"

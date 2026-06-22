@@ -1,0 +1,31 @@
+name: Test labeler action on pull request event
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/42/merge
+      GITHUB_HEAD_REF: feature/my-feature
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Invoke labeler action for pull_request event
+        id: action
+        uses: .
+        with:
+          GITHUB_TOKEN: fake-token-for-testing
+        continue-on-error: true
+
+      - name: Assert action ran (not skipped)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          # The action should attempt to run and either succeed or fail at the API level.
+          # It must not be skipped.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked for pull_request event (outcome: ${{ steps.action.outcome }})"
