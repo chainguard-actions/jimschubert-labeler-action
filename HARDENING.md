@@ -8,27 +8,35 @@
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
-**Harden Agent Version:** `1`
+**Harden Agent Version:** `2`
 
-Action **jimschubert--labeler-action/v1** was hardened automatically. 1 finding(s) were identified and resolved across 1 iteration(s).
+Action **jimschubert--labeler-action/v1** was hardened automatically. 2 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
 ### unpinned-uses (severity: high)
 
-The action.yml `runs.image:` field references a Docker image using a mutable `:latest` tag (`docker://jimschubert/labeler-action:latest`) instead of an immutable SHA digest (e.g., `docker://jimschubert/labeler-action@sha256:<64-hex-char-digest>`). This means the action can silently pull a different (potentially malicious) image on every run, creating a supply-chain attack vector.
+action.yml uses a Docker image with a mutable tag instead of a SHA digest. The image reference `docker://jimschubert/labeler-action:latest` uses the `:latest` tag, which can change at any time and is vulnerable to supply-chain attacks. It should be pinned to a specific SHA digest, e.g. `docker://jimschubert/labeler-action@sha256:<64-hex-char-digest>`.
 
 Locations:
 
 - `action.yml:26`
 
+### missing-permissions (severity: medium)
+
+The workflow file .github/workflows/community.yml has no top-level `permissions:` key and the single job `labeler` also has no job-level `permissions:` key. Without explicit permissions, the workflow inherits the default repository permissions (which may be write-all), violating the principle of least privilege. A minimal permissions block such as `permissions: contents: read` should be added.
+
+Locations:
+
+- `.github/workflows/community.yml:15`
+
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** unpinned-uses
+**Fixes applied:** unpinned-uses, missing-permissions
 
 **Notes:**
 
-Replaced the mutable `docker://jimschubert/labeler-action:latest` reference in action.yml (line 26) with the immutable digest `docker://jimschubert/labeler-action@sha256:b303f564fd7df178f6aea821080c9fc9b2cf9453e69c99d0baf32f48f2fa3a96 # latest`. The digest was resolved via the Docker Registry HTTP API v2.
+1. Pinned the Docker image in action.yml from `docker://jimschubert/labeler-action:latest` to `docker://jimschubert/labeler-action:latest@sha256:137acbf8c270199f4a390d5336a557979b5f52341aa91dcf9303b9584a3836be`, preserving the `docker://` scheme and `:latest` tag inline. 2. Added a top-level `permissions:` block to `.github/workflows/community.yml` with `issues: write` and `pull-requests: write` — the minimum permissions needed for the labeler action to apply labels to issues and pull requests.
 

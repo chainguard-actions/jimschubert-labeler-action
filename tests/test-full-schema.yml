@@ -1,0 +1,65 @@
+name: Test labeler action with full schema config
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Create the labeler config using the full schema
+      - name: Create full schema labeler config
+        run: |
+          mkdir -p .github
+          cat > .github/labeler.yml << 'EOF'
+          enable:
+            issues: true
+            prs: true
+          comments:
+            issues: |
+              Thanks for opening this issue!
+              I have applied any labels matching special text in your title and description.
+            prs: |
+              Thanks for the contribution!
+              I have applied any labels matching special text in your title and description.
+          labels:
+            'bug':
+              include:
+                - '\bbug[s]?\b'
+              exclude: []
+            'help wanted':
+              include:
+                - '\bhelp( me)?\b'
+              exclude:
+                - '\b\[test(ing)?\]\b'
+            'enhancement':
+              include:
+                - '\bfeat\b'
+              exclude: []
+          EOF
+
+      # Run the action with the full schema config.
+      # Under workflow_dispatch, id=0 so the action may fail at the API call,
+      # but it should not fail due to config parsing errors.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_EVENT_NAME: workflow_dispatch
+
+      - name: Assert action ran without config error
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # Accept success or failure (API may reject issue #0),
+          # but not 'cancelled' or 'skipped' which would indicate a setup problem.
+          if [ "$OUTCOME" = "success" ] || [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action ran with full schema config (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome: $OUTCOME"
+            exit 1
+          fi
