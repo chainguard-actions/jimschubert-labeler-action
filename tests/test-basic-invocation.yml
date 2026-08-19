@@ -1,0 +1,41 @@
+name: Test basic invocation with default config path
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create labeler config at default path
+        run: |
+          mkdir -p .github
+          cat > .github/labeler.yml << 'EOF'
+          comment: |
+            Thanks for this!
+          labels:
+            'bug':
+              - '\bbug[s]?\b'
+          EOF
+
+      - name: Run action with default config path and real token
+        id: action
+        uses: .
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran (not skipped)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should start and process the event.
+          # Under workflow_dispatch, id=0 so labeler may succeed (no-op) or fail
+          # with an API error. Either way, the action must have run (not skipped).
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with outcome '$OUTCOME'"

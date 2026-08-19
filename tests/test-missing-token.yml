@@ -1,0 +1,42 @@
+name: Test action fails without GITHUB_TOKEN input or env
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create labeler config at default path
+        run: |
+          mkdir -p .github
+          cat > .github/labeler.yml << 'EOF'
+          comment: |
+            Thanks for this!
+          labels:
+            'bug':
+              - '\bbug[s]?\b'
+          EOF
+
+      - name: Run action with GITHUB_TOKEN explicitly unset
+        id: action
+        uses: .
+        env:
+          # Override GITHUB_TOKEN to empty string to simulate missing token.
+          # The action checks INPUT_GITHUB_TOKEN (not set) then GITHUB_TOKEN env.
+          GITHUB_TOKEN: ""
+        continue-on-error: true
+
+      - name: Assert action failed due to missing token
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # With GITHUB_TOKEN empty and no input provided, the action should fail
+          # with "missing environment variable 'GITHUB_TOKEN' in labeler action configuration"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail when GITHUB_TOKEN is missing, but outcome was '$OUTCOME'"
+            exit 1
+          fi
+          echo "PASS: action correctly failed when GITHUB_TOKEN was missing"
