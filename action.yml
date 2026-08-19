@@ -29,5 +29,5 @@ branding:
   color: 'orange'
 runs:
   using: docker
-  image: docker://jimschubert/labeler-action@sha256:b303f564fd7df178f6aea821080c9fc9b2cf9453e69c99d0baf32f48f2fa3a96 # v2
+  image: docker://jimschubert/labeler-action:v2@sha256:42e1eb913489d4ba52aad1f4713d9d529de04cc9f3147c0fca77cbbbab8279ab
   # image: Dockerfile
